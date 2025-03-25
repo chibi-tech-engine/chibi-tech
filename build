@@ -1,0 +1,17 @@
+#!/bin/sh
+
+mode=$1
+if [[ -z $mode ]]; then mode=d; fi
+
+# Set build directory
+if [ $mode = d ]; then out_dir=bin-debug; fi
+if [ $mode = r ]; then out_dir=bin-rel; fi
+
+# Set install directory
+if [ $mode = d ]; then install_dir=../install/debug; fi
+if [ $mode = r ]; then install_dir=../install/rel; fi
+
+pushd $out_dir
+    meson compile
+    meson install --quiet --no-rebuild --only-changed --destdir $install_dir
+popd

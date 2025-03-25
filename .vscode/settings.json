@@ -1,0 +1,7 @@
+{
+    "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
+    "lldb.showDisassembly": "auto",
+    "lldb.dereferencePointers": true,
+    "lldb.consoleMode": "commands",
+    "C_Cpp.default.compileCommands": "c:\\Users\\enlynn\\Documents\\Dev\\chibi-tech\\builddir/compile_commands.json"
+}

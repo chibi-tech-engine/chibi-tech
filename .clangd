@@ -1,0 +1,6 @@
+CompileFlags:
+  CompilationDatabase: bin-debug/
+  Add: [-std=c++20]
+
+InlayHints:
+  Enabled: No

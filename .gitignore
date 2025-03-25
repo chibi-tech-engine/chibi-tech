@@ -1,0 +1,6 @@
+install/
+bin-debug/
+bin-rel/
+.idea
+
+compile_commands.json

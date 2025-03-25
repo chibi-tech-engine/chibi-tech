@@ -1,0 +1,15 @@
+#!/bin/sh
+
+mode=$1
+if [[ -z $mode ]]; then mode=d; fi
+
+if [ $mode = v ]; then
+    valgrind ./bin-debug/ct-render-app/ct-app/ct-render-demo
+    rm vgcore*
+elif [ $mode = g ]; then
+    gdb --tui ./bin-debug/ct-render-app/ct-app/ct-render-demo
+else
+    if [ $mode = d ]; then out_dir=bin-debug; fi
+    if [ $mode = r ]; then out_dir=bin-rel; fi
+    ./$out_dir/ct-render-app/ct-app/ct-render-demo
+fi
