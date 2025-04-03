@@ -1,46 +1,11 @@
 #pragma once
 
 #include "types.h"
+#include "allocators/allocator.h"
 
 enum class allocator_type {
     dynamic,
     linear,
-};
-
-namespace memory {
-    enum tag {
-        unknown,
-        array,
-        linear_allocator,
-        darray,
-        hashtable,
-        ring_queue,
-        string,
-        registry,
-        plugin,
-        platform,
-        engine,
-        render,
-        ui,
-        audio,
-        game,
-        texture,
-        material_instance,
-        vulkan,
-        vulkan_ext, // "External" vulkan allocations, for reporting purposes only.
-        gpu_local,
-        keymap,
-
-        max_tags,
-    };
-};
-
-struct allocator_i
-{
-    void* (*allocate)(void* allocator, u64 size);
-    void (*free)(void* allocator, void* block);
-    void (*free_all)(void* allocator);
-    void* internal_state;
 };
 
 struct memory_system_config

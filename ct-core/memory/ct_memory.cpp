@@ -18,10 +18,12 @@ struct memory_system_state
     memory_stats stats;
     u64 dynamic_allocator_requirement;
     dynamic_allocator* heap;
+    allocator_i heap_allocator{};
     //@assume single threaded for now
 };
 
 memory_system_state* g_state{nullptr};
+
 
 CT_API bool
 memory_system_initialize(memory_system_config config)
@@ -44,6 +46,8 @@ memory_system_initialize(memory_system_config config)
 
     dynamic_allocator_initialize(config.total_alloc_size, &allocator_requirement, (void*)(g_state + 1), &g_state->heap);
 
+    g_state->heap_allocator = dynamic_allocator_get_interface(g_state->heap);
+
     return true;
 }
 
@@ -53,6 +57,13 @@ memory_system_shutdown()
     dynamic_allocator_shutdown(g_state->heap);
     platform_free_memory((void*)g_state, g_state->total_size_requirement);
 }
+
+CT_API allocator_i
+ct_get_heap_allocator()
+{
+    return g_state->heap_allocator;
+}
+
 
 CT_API void*
 ct_allocate(u64 size, memory::tag tag)

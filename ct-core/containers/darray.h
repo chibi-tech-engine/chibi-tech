@@ -3,6 +3,7 @@
 #include "types.h"
 #include "optional.h"
 #include "memory/ct_memory.h"
+#include "debug/ct_assert.h"
 
 template <typename type>
 struct darray
@@ -29,9 +30,9 @@ template<typename type>
 void darray_unordered_remove(darray<type>* array, int index);
 
 template<typename type>
-void darray_set_len(void **ptr, int new_len);
+void darray_set_len(darray<type>* array, int new_len);
 
 template<typename type>
-void darray_set_capacity(void **ptr, int new_cap);
+void darray_set_capacity(darray<type>* array, int new_cap);
 
 #include "darray.inl"

@@ -15,3 +15,6 @@ struct optional
     constexpr const type& get() const { CT_ASSERT_DEBUG(exists); return value; }
     constexpr type& get_mut() { CT_ASSERT_DEBUG(exists); return value; }
 };
+
+template<typename type>
+optional<type> optional_some(type v) { return optional{ .value = v, .exists = true }; }

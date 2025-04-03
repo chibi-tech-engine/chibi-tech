@@ -7,7 +7,6 @@ struct block_header
 {
     u32 block_size; // includes the block_size member. true allocation size is block_size - sizeof(u32)
     block_header* next_ptr;
-    block_header* prev_ptr;
 };
 
 static constexpr u64 c_min_block_allocation_size = 2 * sizeof(void*);
@@ -61,7 +60,6 @@ static bool merge_block_left(block_header *left_header, block_header* right_head
         left_header->block_size += right_header->block_size;
         //right header is no longer valid
         right_header->next_ptr = nullptr;
-        right_header->prev_ptr = nullptr;
         right_header->block_size = 0;
         return true;
     }
@@ -92,8 +90,17 @@ void dynamic_allocator_initialize(u64 total_size, u64* memory_requirement, void*
     self->total_size = total_size;
     self->free_blocks = user_ptr_to_block_ptr(self->base_ptr);
     self->free_blocks->next_ptr = nullptr;
-    self->free_blocks->prev_ptr = nullptr;
     self->free_blocks->block_size = total_size;
+}
+
+void dynamic_allocator_reset(dynamic_allocator* self)
+{
+    self->num_allocations = 0;
+    self->free_memory = self->total_size;
+    self->used_memory = 0;
+    self->free_blocks = user_ptr_to_block_ptr(self->base_ptr);
+    self->free_blocks->next_ptr = nullptr;
+    self->free_blocks->block_size = self->total_size;
 }
 
 void dynamic_allocator_report_allocations(dynamic_allocator* self)
@@ -127,6 +134,7 @@ void* dynamic_allocator_allocate(dynamic_allocator* self, u64 size)
     }
 
     // find a free block large enough to fit the allocation in, this is first fit search
+    block_header* prev_block = nullptr;
     block_header* iter = self->free_blocks;
     while (iter != nullptr)
     {
@@ -134,6 +142,8 @@ void* dynamic_allocator_allocate(dynamic_allocator* self, u64 size)
         { // found a block the allocation will fit into
             break;
         }
+
+        prev_block = iter;
         iter = iter->next_ptr;
     }
 
@@ -152,12 +162,7 @@ void* dynamic_allocator_allocate(dynamic_allocator* self, u64 size)
 
             // update the old block first to avoid corrupting the original block's pointers
             new_block->block_size = leftover_size;
-            new_block->prev_ptr = split_block;
             new_block->next_ptr = split_block->next_ptr;
-            if (new_block->next_ptr)
-            {
-                new_block->next_ptr->prev_ptr = new_block;
-            }
 
             // now we can safely update the split block
             split_block->next_ptr = new_block;
@@ -169,20 +174,14 @@ void* dynamic_allocator_allocate(dynamic_allocator* self, u64 size)
     if (iter == self->free_blocks)
     { //this is just the front of the list
         self->free_blocks = iter->next_ptr;
-        self->free_blocks->prev_ptr = nullptr;
     }
     else
     { // we're in the middle or end of the list
-        iter->prev_ptr->next_ptr = iter->next_ptr;
-        if (iter->next_ptr)
-        {
-            iter->next_ptr->prev_ptr = iter->prev_ptr;
-        }
+        prev_block->next_ptr = iter->next_ptr;
     }
 
     // make absolutely sure this block can't accidentally point back to the free list
     iter->next_ptr = nullptr;
-    iter->prev_ptr = nullptr;
 
     self->used_memory += iter->block_size;
     self->free_memory -= iter->block_size;
@@ -200,7 +199,6 @@ void dynamic_allocator_free(dynamic_allocator* self, void* ptr)
 
     block_header* block = user_ptr_to_block_ptr(ptr);
     block->next_ptr = nullptr;
-    block->prev_ptr = nullptr;
 
     // update tracking metrics
     self->free_memory += block->block_size;
@@ -217,7 +215,6 @@ void dynamic_allocator_free(dynamic_allocator* self, void* ptr)
     else if (block < self->free_blocks)
     {
         block->next_ptr = self->free_blocks;
-        self->free_blocks->prev_ptr = block;
         self->free_blocks = block;
     }
     else
@@ -247,31 +244,52 @@ void dynamic_allocator_free(dynamic_allocator* self, void* ptr)
             if (next_block && merge_block_left(prev_block, next_block))
             { // could we, perhaps, merge one more time?
                 prev_block->next_ptr = next_block->next_ptr;
-                if (prev_block->next_ptr)
-                {
-                    prev_block->next_ptr->prev_ptr = prev_block;
-                }
             }
         }
         else if (next_block && merge_block_left(block, next_block))
         { // ok, well, can we merge the next_ptr block into the user block?
             prev_block->next_ptr = block;
-            block->prev_ptr = prev_block;
             block->next_ptr = next_block->next_ptr;
-            if (block->next_ptr)
-            {
-                block->next_ptr->prev_ptr = block;
-            }
         }
         else
         { // can't merge, so just insert the block
             prev_block->next_ptr = block;
-            block->prev_ptr = prev_block;
             if (next_block)
             {
                 block->next_ptr = next_block;
-                next_block->prev_ptr = block;
             }
         }
     }
+}
+
+static void*
+allocate_helper(allocator_i* allocator, u64 size)
+{
+    CT_ASSERT(allocator->internal_state);
+    return dynamic_allocator_allocate((dynamic_allocator*)allocator->internal_state, size);
+}
+
+static void
+free_helper(allocator_i* allocator, void* block)
+{
+    CT_ASSERT(allocator->internal_state);
+    dynamic_allocator_free((dynamic_allocator*)allocator->internal_state, block);
+}
+
+static void
+free_all_helper(allocator_i* allocator)
+{
+    CT_ASSERT(allocator->internal_state);
+    dynamic_allocator_reset((dynamic_allocator*)allocator->internal_state);
+}
+
+allocator_i
+dynamic_allocator_get_interface(dynamic_allocator* self)
+{
+    allocator_i result;
+    result.internal_state = (void*)self;
+    result.allocate = allocate_helper;
+    result.free = free_helper;
+    result.free_all = free_all_helper;
+    return result;
 }

@@ -17,9 +17,10 @@ using f64 = double;
 
 union u128 {
     struct {
-        s64 upper, lower;
+        u64 upper, lower;
     };
-    s64 bits[2];
+    u32 bits32[4];
+    u64 bits64[2];
 };
 
 static_assert(sizeof(s8) == 1, "Expected s8 to be 1 byte.");

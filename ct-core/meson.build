@@ -1,10 +1,12 @@
 #project('ct-core', 'cpp')
 
 source= [
-  'platform/platform_win32.cpp',
-  'platform/platform_nix.cpp',
+  'containers/hashtable.cpp',
+  'containers/strings.cpp',
   'memory/allocators/dynamic_allocator.cpp',
   'memory/ct_memory.cpp',
+  'platform/platform_win32.cpp',
+  'platform/platform_nix.cpp',
 ]
 
 inc = include_directories('.')
