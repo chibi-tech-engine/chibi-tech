@@ -4,12 +4,21 @@ mode=$1
 if [[ -z $mode ]]; then mode=d; fi
 
 if [ $mode = v ]; then
-    valgrind ./bin-debug/ct-render-app/ct-app/ct-render-demo
+    out_dir=out/build/linux-debug/
+    pushd ./$out_dir
+        valgrind ./chibi-tech
+    popd
     rm vgcore*
 elif [ $mode = g ]; then
-    gdb --tui ./bin-debug/ct-render-app/ct-app/ct-render-demo
+    out_dir=out/build/linux-debug/
+    pushd ./$out_dir
+        gdb --tui ./chibi-tech
+    popd
 else
-    if [ $mode = d ]; then out_dir=bin-debug; fi
-    if [ $mode = r ]; then out_dir=bin-rel; fi
-    ./$out_dir/ct-render-app/ct-app/ct-render-demo
+    if [ $mode = d ]; then out_dir=out/build/linux-debug; fi
+    if [ $mode = r ]; then out_dir=out/build/linux-release; fi
+
+    pushd ./$out_dir
+        ./chibi-tech
+    popd
 fi

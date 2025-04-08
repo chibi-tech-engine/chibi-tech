@@ -2,9 +2,8 @@ BasedOnStyle: LLVM
 IndentWidth: 4
 ColumnLimit: 130
 NamespaceIndentation: All
-BreakBeforeBraces: Attach
 PointerAlignment: Left
 IndentPPDirectives: AfterHash
 BreakAfterReturnType: TopLevelDefinitions
 BreakArrays: true
-BraceBreakingStyle: Linux
+BreakBeforeBraces: Linux

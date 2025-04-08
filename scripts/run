@@ -1,0 +1,15 @@
+#!/bin/sh
+
+mode=$1
+if [[ -z $mode ]]; then mode=d; fi
+
+if [ $mode = v ]; then
+    valgrind ./out/linux-debug/ct-render-demo
+    rm vgcore*
+elif [ $mode = g ]; then
+    gdb --tui ./out/linux-debug/ct-render-demo
+else
+    if [ $mode = d ]; then out_dir=out/linux-debug; fi
+    if [ $mode = r ]; then out_dir=out/linux-release; fi
+    ./$out_dir/chibi-tech
+fi

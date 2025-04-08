@@ -1,6 +1,19 @@
-install/
-bin-debug/
-bin-rel/
+# IDE files
+.vscode
 .idea
 
+# clangd database
 compile_commands.json
+
+# build directories
+out/
+
+# user helper scripts
+build
+run
+configure
+
+# allow the example scripts. not sure of a better way to do this :thinks:
+!scripts/build
+!scripts/configure
+!scripts/run
